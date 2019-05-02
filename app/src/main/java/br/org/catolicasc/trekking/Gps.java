@@ -27,6 +27,7 @@ public class Gps implements LocationListener {
 
     public Gps(Context context) {
 
+
         locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
@@ -57,6 +58,7 @@ public class Gps implements LocationListener {
         currentLongitude = location.getLongitude();
         currentLatitude = location.getLatitude();
 
+//        String.format()
         Log.i(TAG, "[onLocationChanged] Lat: " + currentLatitude + " - Long: " + currentLongitude);
     }
 

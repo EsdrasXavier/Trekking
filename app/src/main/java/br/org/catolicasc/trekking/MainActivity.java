@@ -36,8 +36,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         longitudeText = findViewById(R.id.longitude);
         latitudeText = findViewById(R.id.latitude);
 
- sdjaspidj
-
         mSensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
         compass = mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
 
@@ -46,8 +44,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
 
         gps = new Gps(this);
-
-
     }
 
     @Override
