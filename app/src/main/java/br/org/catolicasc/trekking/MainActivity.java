@@ -1,20 +1,18 @@
 package br.org.catolicasc.trekking;
 
-import android.Manifest;
-import android.content.Context;
-import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
-import android.location.LocationManager;
+import android.location.LocationListener;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
 
-public class MainActivity extends AppCompatActivity implements SensorEventListener {
+
+public class MainActivity extends AppCompatActivity implements SensorEventListener, GpsLocationListener.PositionHandler {
 
     private String TAG = "MainActivity";
 
@@ -24,7 +22,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private SensorManager mSensorManager;
     private Sensor compass;
-    private Gps gps;
+    private GpsLocationListener gpsLocationListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,15 +34,21 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         longitudeText = findViewById(R.id.longitude);
         latitudeText = findViewById(R.id.latitude);
 
-        mSensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
+        mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         compass = mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
 
-        if (compass != null){
+        if (compass != null) {
             mSensorManager.registerListener((SensorEventListener) this, compass, SensorManager.SENSOR_DELAY_NORMAL);
         }
 
-        gps = new Gps(this);
+        gpsLocationListener = new GpsLocationListener(this, this);
     }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
+
 
     @Override
     protected void onResume() {
@@ -75,7 +79,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         Log.v("TESTE", longitude);
         String latitude = "Latitude: " + loc.getLatitude();
         Log.v("TESTE", latitude);
-        latitudeText.setText(latitude);
-        longitudeText.setText(longitude);
+
+    }
+
+
+    @Override
+    public void onPositionChanged(Double latitude, Double longitude) {
+        latitudeText.setText(latitude.toString());
+        longitudeText.setText(longitude.toString());
     }
 }

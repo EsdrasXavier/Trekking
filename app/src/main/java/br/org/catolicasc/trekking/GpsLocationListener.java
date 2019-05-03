@@ -11,21 +11,21 @@ import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
-public class Gps implements LocationListener {
+public class GpsLocationListener implements LocationListener {
 
     private final String TAG = "GPS";
 
     private double currentLatitude;
     private double currentLongitude;
-
     private LocationManager locationManager;
-    private OnUpdateLocation activity;
+    private PositionHandler positionHandler;
 
-    interface OnUpdateLocation {
-        void onUpdateLocation(Location location);
+    interface PositionHandler {
+        void onPositionChanged(Double latitude, Double longitude);
     }
 
-    public Gps(Context context) {
+
+    public GpsLocationListener(Context context, PositionHandler p) {
 
 
         locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
@@ -36,7 +36,9 @@ public class Gps implements LocationListener {
             ActivityCompat.requestPermissions((Activity) context, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
         }
 
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1, 0, this);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, this);
+
+        positionHandler = p;
 
     }
 
@@ -54,11 +56,13 @@ public class Gps implements LocationListener {
 
     @Override
     public void onLocationChanged(Location location) {
-//        activity.onUpdateLocation(location);
         currentLongitude = location.getLongitude();
         currentLatitude = location.getLatitude();
 
-//        String.format()
+        if (positionHandler != null) {
+            positionHandler.onPositionChanged(currentLatitude, currentLongitude);
+        }
+
         Log.i(TAG, "[onLocationChanged] Lat: " + currentLatitude + " - Long: " + currentLongitude);
     }
 
