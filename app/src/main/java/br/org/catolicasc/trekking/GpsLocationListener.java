@@ -13,7 +13,7 @@ import android.util.Log;
 
 public class GpsLocationListener implements LocationListener {
 
-    private final String TAG = "GPS";
+    private final String TAG = "GPS_LOCATION_LISTENER";
 
     private double currentLatitude;
     private double currentLongitude;
@@ -39,18 +39,6 @@ public class GpsLocationListener implements LocationListener {
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, this);
 
         positionHandler = p;
-
-    }
-
-    public double getCurrentLatitude() {
-        return currentLatitude;
-    }
-
-    public double getCurrentLongitude() {
-        return currentLongitude;
-    }
-
-    private void setMostRecentLocation(Location lastKnownLocation) {
 
     }
 
