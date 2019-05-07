@@ -6,6 +6,22 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:elevation="99px"
+        app:layout_constraintBottom_toBottomOf="@+id/angle"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/mapquestMapView"
+        tools:visibility="invisible" />
+
     <com.mapquest.mapping.maps.MapView
         android:id="@+id/mapquestMapView"
         android:layout_width="0dp"
@@ -14,13 +30,14 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
-        app:layout_constraintBottom_toTopOf="@+id/longitude"
+        app:layout_constraintBottom_toTopOf="@+id/addPoint"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="1.0"
-        app:mapquest_app_key=" bl1Co0BhEVcgZpAqL1SZP8w4ZmJLdcX0 "/>
+        app:mapquest_app_key=" bl1Co0BhEVcgZpAqL1SZP8w4ZmJLdcX0 " >
+
+    </com.mapquest.mapping.maps.MapView>
 
     <TextView
         android:id="@+id/angle"
@@ -75,6 +92,18 @@
         app:layout_constraintBottom_toBottomOf="@+id/mapquestMapView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.98"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/addPoint"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:layout_marginEnd="32dp"
+        android:layout_marginBottom="8dp"
+        android:text="Adicionar ponto"
+        app:layout_constraintBottom_toTopOf="@+id/longitude"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
 </android.support.constraint.ConstraintLayout>

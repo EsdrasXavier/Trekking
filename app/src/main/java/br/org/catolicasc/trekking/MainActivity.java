@@ -1,17 +1,20 @@
 package br.org.catolicasc.trekking;
 
+import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 //import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.annotations.MarkerOptions;
+import com.mapbox.mapboxsdk.annotations.PolylineOptions;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
@@ -20,14 +23,22 @@ import com.mapquest.mapping.MapQuest;
 
 import com.mapquest.mapping.maps.MapView;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity implements GpsLocationListener.PositionHandler, CompassListener.CompassHandler {
 
     private String TAG = "MainActivity";
 
+//    private
+    private ArrayList<Point> points = new ArrayList<Point>(20);
+    private List<LatLng> coordinates = new ArrayList<>();
     private TextView angleText;
     private TextView longitudeText;
     private TextView latitudeText;
     private Button reCenterButton;
+    private Button addPoint;
+    private ProgressBar progressBar;
     private GpsLocationListener gpsLocationListener;
     private CompassListener compassListener;
     private double lat;
@@ -36,6 +47,7 @@ public class MainActivity extends AppCompatActivity implements GpsLocationListen
     private MapView mMapView;
     private MapboxMap mMapboxMap;
     private MarkerOptions markerOptions;
+    private PolylineOptions polylineOptions;
 
 
     @Override
@@ -63,7 +75,7 @@ public class MainActivity extends AppCompatActivity implements GpsLocationListen
                         return true;
                     }
                 });
-                addMarker(mMapboxMap);
+                addMarker(mMapboxMap, lat, lon, "Eu");
             }
 
 
@@ -73,14 +85,44 @@ public class MainActivity extends AppCompatActivity implements GpsLocationListen
         longitudeText = findViewById(R.id.longitude);
         latitudeText = findViewById(R.id.latitude);
         reCenterButton = findViewById(R.id.button2);
+        addPoint = findViewById(R.id.addPoint);
+        progressBar = findViewById(R.id.progressBar);
+        progressBar.setVisibility(View.INVISIBLE);
+
+
+        addPoint.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                progressBar.setVisibility(View.VISIBLE);
+                addPoint.setSaveEnabled(false);
+                int media = 20;
+                double _lat = 0;
+                double _lon = 0;
+                for (int i = 0; i < media; i++) {
+                    _lat += lat;
+                    _lon += lon;
+                }
+
+                _lat = _lat / media;
+                _lon = _lon / media;
+                points.add(new Point(_lat, _lon));
+                coordinates.add(new LatLng(_lat, _lon));
+                addMarker(mMapboxMap, _lat, _lon, "Ponto");
+                progressBar.setVisibility(View.INVISIBLE);
+                addPoint.setSaveEnabled(true);
+                updatePolyline(mMapboxMap);
+            }
+        });
 
         reCenterButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (mMapboxMap != null) {
                     LatLng pos = new LatLng(lat, lon);
+                    markerOptions = new MarkerOptions();
                     markerOptions.setPosition(pos);
-                    mMapboxMap.updateMarker(markerOptions.getMarker());
+                    mMapboxMap.removeMarker(markerOptions.getMarker());
+                    mMapboxMap.addMarker(markerOptions);
                     mMapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(pos, 17));
                 }
             }
@@ -90,13 +132,25 @@ public class MainActivity extends AppCompatActivity implements GpsLocationListen
         compassListener = new CompassListener(this, this);
     }
 
+    private void updatePolyline(MapboxMap mapboxMap) {
+        if (this.coordinates.size() < 0) return ;
+
+        if (!mapboxMap.getPolylines().isEmpty()) {
+            mapboxMap.removePolyline(polylineOptions.getPolyline());
+        }
+
+        polylineOptions = new PolylineOptions();
+        polylineOptions.addAll(coordinates);
+        polylineOptions.width(5);
+        polylineOptions.color(Color.BLUE);
+        mapboxMap.addPolyline(polylineOptions);
+    }
 
 
-    private void addMarker(MapboxMap mapboxMap) {
+    private void addMarker(MapboxMap mapboxMap, double _lat, double _lon, String name) {
         markerOptions = new MarkerOptions();
-        markerOptions.position(new LatLng(lat, lon));
-        markerOptions.title("Eu");
-        markerOptions.snippet("Welcome to Denver!");
+        markerOptions.position(new LatLng(_lat, _lon));
+        markerOptions.title(name);
         mapboxMap.addMarker(markerOptions);
     }
 
