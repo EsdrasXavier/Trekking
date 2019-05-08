@@ -23,6 +23,7 @@ import com.mapquest.mapping.MapQuest;
 
 import com.mapquest.mapping.maps.MapView;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,12 +31,15 @@ public class MainActivity extends AppCompatActivity implements GpsLocationListen
 
     private String TAG = "MainActivity";
 
-//    private
     private ArrayList<Point> points = new ArrayList<Point>(20);
     private List<LatLng> coordinates = new ArrayList<>();
+    private Point currentPoint;
+    private double currenteAngle;
     private TextView angleText;
     private TextView longitudeText;
     private TextView latitudeText;
+    private TextView currentPointText;
+    private TextView pointInfo;
     private Button reCenterButton;
     private Button addPoint;
     private ProgressBar progressBar;
@@ -47,6 +51,7 @@ public class MainActivity extends AppCompatActivity implements GpsLocationListen
     private MapView mMapView;
     private MapboxMap mMapboxMap;
     private MarkerOptions markerOptions;
+    private MarkerOptions currentPosition;
     private PolylineOptions polylineOptions;
 
 
@@ -75,10 +80,8 @@ public class MainActivity extends AppCompatActivity implements GpsLocationListen
                         return true;
                     }
                 });
-                addMarker(mMapboxMap, lat, lon, "Eu");
+                addMarker(mapboxMap);
             }
-
-
         });
 
         angleText = findViewById(R.id.angle);
@@ -87,8 +90,16 @@ public class MainActivity extends AppCompatActivity implements GpsLocationListen
         reCenterButton = findViewById(R.id.button2);
         addPoint = findViewById(R.id.addPoint);
         progressBar = findViewById(R.id.progressBar);
+        currentPointText = findViewById(R.id.currentPoint);
+        pointInfo = findViewById(R.id.pointInfo);
         progressBar.setVisibility(View.INVISIBLE);
 
+        String txt = "Angulo para chegar ao ponto: 0°\n";
+        txt += "Distancia: 0m";
+        pointInfo.setText(txt);
+        currentPointText.setText("Lat: 0 \n Lon: 0");
+
+        currentPoint = new Point(lat, lon);
 
         addPoint.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -107,10 +118,13 @@ public class MainActivity extends AppCompatActivity implements GpsLocationListen
                 _lon = _lon / media;
                 points.add(new Point(_lat, _lon));
                 coordinates.add(new LatLng(_lat, _lon));
-                addMarker(mMapboxMap, _lat, _lon, "Ponto");
+//                addMarker(mMapboxMap, _lat, _lon, "Ponto");
                 progressBar.setVisibility(View.INVISIBLE);
                 addPoint.setSaveEnabled(true);
-                updatePolyline(mMapboxMap);
+
+                String txt = "Lat: " + points.get(0).getLatitude() + "\n Lon: " + points.get(0).getLongitude();
+                currentPointText.setText(txt);
+//                updatePolyline(mMapboxMap);
             }
         });
 
@@ -119,11 +133,8 @@ public class MainActivity extends AppCompatActivity implements GpsLocationListen
             public void onClick(View v) {
                 if (mMapboxMap != null) {
                     LatLng pos = new LatLng(lat, lon);
-                    markerOptions = new MarkerOptions();
-                    markerOptions.setPosition(pos);
-                    mMapboxMap.removeMarker(markerOptions.getMarker());
-                    mMapboxMap.addMarker(markerOptions);
-                    mMapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(pos, 17));
+//                    updateCurrentPositionMarker(mMapboxMap);
+//                    mMapboxMap.moveCamera(CameraUpdateFactory.newLatLngZoom(pos, 17));
                 }
             }
         });
@@ -146,6 +157,22 @@ public class MainActivity extends AppCompatActivity implements GpsLocationListen
         mapboxMap.addPolyline(polylineOptions);
     }
 
+    private void updateCurrentPositionMarker(MapboxMap mapboxMap) {
+        if (currentPosition != null) {
+            mapboxMap.removeMarker(currentPosition.getMarker());
+            currentPosition.position(new LatLng(currentPoint.getLatitude(), currentPoint.getLongitude()));
+            mapboxMap.addMarker(markerOptions);
+        }
+    }
+
+
+    private void addMarker(MapboxMap mapboxMap) {
+        currentPosition = new MarkerOptions();
+        currentPosition.position(new LatLng(currentPoint.getLatitude(), currentPoint.getLongitude()));
+        currentPosition.title("Eu");
+        mapboxMap.addMarker(markerOptions);
+    }
+
 
     private void addMarker(MapboxMap mapboxMap, double _lat, double _lon, String name) {
         markerOptions = new MarkerOptions();
@@ -154,6 +181,21 @@ public class MainActivity extends AppCompatActivity implements GpsLocationListen
         mapboxMap.addMarker(markerOptions);
     }
 
+
+    private void calculateDistance() {
+        if (points.size() > 0) {
+            Point p = points.get(0);
+            Double angle = GpsMath.courseTo(lat, lon, p.getLatitude(), p.getLongitude());
+            Double distance = GpsMath.distanceBetween(lat, lon, p.getLatitude(), p.getLongitude());
+
+            String _angle = new DecimalFormat("#.00").format(angle);
+            String _distance = new DecimalFormat("#.00").format(distance);
+
+            String txt = "Angulo para chegar ao ponto: " + _angle + "°\n";
+            txt += "Distancia: " + _distance + "m";
+            pointInfo.setText(txt);
+        }
+    }
 
     @Override
     public void onResume() {
@@ -185,13 +227,17 @@ public class MainActivity extends AppCompatActivity implements GpsLocationListen
         Log.i(TAG, "[ON POSITION CHANGED] Lat: " + latitude.toString() + " - Lon: " + longitude.toString());
         lat = latitude;
         lon = longitude;
-        latitudeText.setText( "Latitude: " + latitude.toString());
-        longitudeText.setText("Longitude: " +longitude.toString());
+        currentPoint.setLatitude(lat);
+        currentPoint.setLongitude(lon);
+        latitudeText.setText( "Latitude: " + currentPoint.getLatitude().toString());
+        longitudeText.setText("Longitude: " + currentPoint.getLongitude().toString());
+        calculateDistance();
     }
 
     @Override
     public void onAngleChanged(Double angle) {
         Log.i(TAG, "[ON ANGLE CHANGED] angle: " + angle.toString());
+        currenteAngle = angle;
         angleText.setText("Angle: " + angle.toString() + "°");
     }
 }
