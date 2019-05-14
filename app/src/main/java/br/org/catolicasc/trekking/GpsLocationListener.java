@@ -101,19 +101,6 @@ public class GpsLocationListener implements LocationListener,
             Toast.makeText(this.context, "You need to enable permissions to display location !", Toast.LENGTH_SHORT).show();
         }
 
-        LocationListener locationListener = new LocationListener() {
-            @Override
-            public void onLocationChanged(Location location) {
-
-                if (location != null) {
-                    if (positionHandler != null) {
-                        positionHandler.onPositionChanged(location.getLatitude(), location.getLongitude());
-                        startLocationUpdates();
-                    }
-                }
-            }
-        };
-
         LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
     }
 

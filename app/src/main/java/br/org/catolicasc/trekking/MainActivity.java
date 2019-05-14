@@ -1,15 +1,11 @@
 package br.org.catolicasc.trekking;
 
-import android.annotation.SuppressLint;
 import android.os.AsyncTask;
-import android.support.constraint.ConstraintLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -19,8 +15,8 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity implements GpsLocationListener.PositionHandler, CompassListener.CompassHandler {
 
     private String TAG = "MainActivity";
-    private final int TELEMETRY_CICLES = 10;
-    private final int TELEMETRY_DLEAY = 500; /* Will be used each iteration of the telemetry */
+    private final int TELEMETRY_CICLES = 5;
+    private final int TELEMETRY_DELEAY = 700; /* Will be used each iteration of the telemetry */
 
     private ArrayList<Point> points = new ArrayList<Point>(20);
     private Point lastPoint;
@@ -94,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements GpsLocationListen
                 _lon += lon;
 
                 try {
-                    Thread.sleep(500);
+                    Thread.sleep(TELEMETRY_DELEAY);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -108,6 +104,7 @@ public class MainActivity extends AppCompatActivity implements GpsLocationListen
             runOnUiThread(() -> {
                 String txt = "Lat: " + lastPoint.getLatitude() + "\n Lon: " + lastPoint.getLongitude();
                 currentPointText.setText(txt);
+                calculateDistance();
             });
 
             return null;
@@ -115,7 +112,6 @@ public class MainActivity extends AppCompatActivity implements GpsLocationListen
 
         @Override
         protected void onPostExecute(Void result) {
-            // what to do when background task is completed
             disableEnableControls(true);
             runOnUiThread(() -> progressBar.setVisibility(View.INVISIBLE));
         }
@@ -172,7 +168,7 @@ public class MainActivity extends AppCompatActivity implements GpsLocationListen
 
     @Override
     public void onAngleChanged(Double angle) {
-        Log.i(TAG, "[ON ANGLE CHANGED] angle: " + angle.toString());
+        // Log.i(TAG, "[ON ANGLE CHANGED] angle: " + angle.toString());
         angleText.setText("Angle: " + angle.toString() + "°");
     }
 }
