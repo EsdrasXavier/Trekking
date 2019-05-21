@@ -18,6 +18,14 @@ public class MainActivity extends AppCompatActivity implements GpsLocationListen
     private final int TELEMETRY_CICLES = 5;
     private final int TELEMETRY_DELEAY = 700; /* Will be used each iteration of the telemetry */
 
+    /**
+     * Constants to use in the PID controller
+     */
+    private final double KP = 3.5;
+    private final double KD = 0.05;
+    private final double KI = 10.5;
+    private final double TOLERANCE = 5.0;
+
     private ArrayList<Point> points = new ArrayList<Point>(20);
     private Point lastPoint;
     private Point currentPoint;
@@ -26,12 +34,15 @@ public class MainActivity extends AppCompatActivity implements GpsLocationListen
     private TextView latitudeText;
     private TextView currentPointText;
     private TextView pointInfo;
+    private TextView onTargetView;
+    private TextView motorPower;
     private Button addPoint;
     private ProgressBar progressBar;
     private GpsLocationListener gpsLocationListener;
     private CompassListener compassListener;
     private double lat;
     private double lon;
+    private PIDController pid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +56,8 @@ public class MainActivity extends AppCompatActivity implements GpsLocationListen
         progressBar = findViewById(R.id.progressBar);
         currentPointText = findViewById(R.id.currentPoint);
         pointInfo = findViewById(R.id.pointInfo);
+        onTargetView = findViewById(R.id.onTargetView);
+        motorPower = findViewById(R.id.motorPower);
         progressBar.setVisibility(View.INVISIBLE);
 
         String txt = "Angulo para chegar ao ponto: 0°\n";
@@ -59,13 +72,19 @@ public class MainActivity extends AppCompatActivity implements GpsLocationListen
             public void onClick(View v) {
                 Telemetry currentPositionTelemetry = new Telemetry();
                 currentPositionTelemetry.execute((Void[]) null);
-
             }
         });
 
         lastPoint = new Point(0, 0);
         gpsLocationListener = new GpsLocationListener(this, this);
         compassListener = new CompassListener(this, this);
+
+        pid = new PIDController(KP, KD, KI, TOLERANCE);
+        pid.setMinInput(0);
+        pid.setMaxInput(359);
+        pid.setMinOutput(200);
+        pid.setMaxOutput(400);
+        pid.setSetPoint(90); // Just set 90° as default
     }
 
     // what to do before background task
@@ -115,7 +134,7 @@ public class MainActivity extends AppCompatActivity implements GpsLocationListen
             disableEnableControls(true);
             runOnUiThread(() -> progressBar.setVisibility(View.INVISIBLE));
         }
-    };
+    }
 
 
     private void calculateDistance() {
@@ -123,13 +142,14 @@ public class MainActivity extends AppCompatActivity implements GpsLocationListen
 
             Double angle = GpsMath.courseTo(lat, lon, lastPoint.getLatitude(), lastPoint.getLongitude());
             Double distance = GpsMath.distanceBetween(lat, lon, lastPoint.getLatitude(), lastPoint.getLongitude());
-
             String _angle = new DecimalFormat("#.00").format(angle);
             String _distance = new DecimalFormat("#.00").format(distance);
-
             String txt = "Angulo para chegar ao ponto: " + _angle + "°\n";
             txt += "Distancia: " + _distance + "m";
             pointInfo.setText(txt);
+            if (angle > 0) {
+                pid.setSetPoint(angle);
+            }
         }
     }
 
@@ -170,5 +190,19 @@ public class MainActivity extends AppCompatActivity implements GpsLocationListen
     public void onAngleChanged(Double angle) {
         // Log.i(TAG, "[ON ANGLE CHANGED] angle: " + angle.toString());
         angleText.setText("Angle: " + angle.toString() + "°");
+
+        if (pid != null) {
+            Double power = pid.performPid(angle);
+            String myPower = power.toString() + " == " + (- power);
+
+            String isOnTarget = "On target: Não";
+            if (pid.onTarget()) {
+                isOnTarget = "On target: Sim";
+                pid.reset();
+            }
+
+            motorPower.setText(myPower);
+            onTargetView.setText(isOnTarget);
+        }
     }
 }
