@@ -13,6 +13,9 @@ import android.widget.TextView;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 
+import br.org.catolicasc.trekking.models.Point;
+
+
 public class MainActivity extends AppCompatActivity implements GpsLocationListener.PositionHandler,
                                                                 CompassListener.CompassHandler {
 
@@ -131,11 +134,11 @@ public class MainActivity extends AppCompatActivity implements GpsLocationListen
 
             _lat = _lat / TELEMETRY_CICLES;
             _lon = _lon / TELEMETRY_CICLES;
-            lastPoint.setLatitude(_lat);
-            lastPoint.setLongitude(_lon);
+            lastPoint.setLat(_lat);
+            lastPoint.setLon(_lon);
 
             runOnUiThread(() -> {
-                String txt = "Lat: " + lastPoint.getLatitude() + "\n Lon: " + lastPoint.getLongitude();
+                String txt = "Lat: " + lastPoint.getLat() + "\n Lon: " + lastPoint.getLon();
                 currentPointText.setText(txt);
                 calculateDistance();
             });
@@ -154,8 +157,9 @@ public class MainActivity extends AppCompatActivity implements GpsLocationListen
     private void calculateDistance() {
         if (lastPoint != null) {
 
-            Double angle = GpsMath.courseTo(lat, lon, lastPoint.getLatitude(), lastPoint.getLongitude());
-            Double distance = GpsMath.distanceBetween(lat, lon, lastPoint.getLatitude(), lastPoint.getLongitude());
+            Double angle = GpsMath.courseTo(lat, lon, lastPoint.getLat(), lastPoint.getLon());
+            Double distance = GpsMath.distanceBetween(lat, lon, lastPoint.getLat(), lastPoint.getLon());
+
             String _angle = new DecimalFormat("#.00").format(angle);
             String _distance = new DecimalFormat("#.00").format(distance);
             String txt = "Angulo para chegar ao ponto: " + _angle + "°\n";
@@ -193,10 +197,10 @@ public class MainActivity extends AppCompatActivity implements GpsLocationListen
         Log.i(TAG, "[ON POSITION CHANGED] Lat: " + latitude.toString() + " - Lon: " + longitude.toString());
         lat = latitude;
         lon = longitude;
-        currentPoint.setLatitude(lat);
-        currentPoint.setLongitude(lon);
-        latitudeText.setText( "Latitude: " + currentPoint.getLatitude().toString());
-        longitudeText.setText("Longitude: " + currentPoint.getLongitude().toString());
+        currentPoint.setLat(lat);
+        currentPoint.setLon(lon);
+        latitudeText.setText( "Latitude: " + currentPoint.getLat());
+        longitudeText.setText("Longitude: " + currentPoint.getLon());
         calculateDistance();
     }
 
