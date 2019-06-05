@@ -1,9 +1,18 @@
 package br.org.catolicasc.trekking;
 
 import android.os.AsyncTask;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
@@ -14,7 +23,10 @@ import java.util.ArrayList;
 
 import br.org.catolicasc.trekking.models.Point;
 
-public class MainActivity extends AppCompatActivity implements GpsLocationListener.PositionHandler, CompassListener.CompassHandler {
+public class MainActivity extends AppCompatActivity implements
+        GpsLocationListener.PositionHandler,
+        CompassListener.CompassHandler,
+        NavigationView.OnNavigationItemSelectedListener {
 
     private String TAG = "MainActivity";
     private final int TELEMETRY_CICLES = 5;
@@ -23,6 +35,8 @@ public class MainActivity extends AppCompatActivity implements GpsLocationListen
     private ArrayList<Point> points = new ArrayList<Point>(20);
     private Point lastPoint;
     private Point currentPoint;
+
+
     private TextView angleText;
     private TextView longitudeText;
     private TextView latitudeText;
@@ -40,34 +54,51 @@ public class MainActivity extends AppCompatActivity implements GpsLocationListen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        angleText = findViewById(R.id.angle);
-        longitudeText = findViewById(R.id.longitude);
-        latitudeText = findViewById(R.id.latitude);
-        addPoint = findViewById(R.id.addPoint);
-        progressBar = findViewById(R.id.progressBar);
-        currentPointText = findViewById(R.id.currentPoint);
-        pointInfo = findViewById(R.id.pointInfo);
-        progressBar.setVisibility(View.INVISIBLE);
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
-        String txt = "Angulo para chegar ao ponto: 0°\n";
-        txt += "Distancia: 0m";
-        pointInfo.setText(txt);
-        currentPointText.setText("Lat: 0 \n Lon: 0");
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.open, R.string.close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+        navigationView.setNavigationItemSelectedListener(this);
 
-        currentPoint = new Point(lat, lon);
+//        mDrawerLayout = findViewById(R.id.drawer);
+//        mToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.open,R.string.close);
+//        mDrawerLayout.addDrawerListener(mToggle);
+//        mToggle.syncState();
+//        getSupportActionBar().setHomeButtonEnabled(true);
 
-        addPoint.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Telemetry currentPositionTelemetry = new Telemetry();
-                currentPositionTelemetry.execute((Void[]) null);
-
-            }
-        });
-
-        lastPoint = new Point(0, 0);
-        gpsLocationListener = new GpsLocationListener(this, this);
-        compassListener = new CompassListener(this, this);
+//        angleText = findViewById(R.id.angle);
+//        longitudeText = findViewById(R.id.longitude);
+//        latitudeText = findViewById(R.id.latitude);
+//        addPoint = findViewById(R.id.addPoint);
+//        progressBar = findViewById(R.id.progressBar);
+//        currentPointText = findViewById(R.id.currentPoint);
+//        pointInfo = findViewById(R.id.pointInfo);
+//        progressBar.setVisibility(View.INVISIBLE);
+//
+//        String txt = "Angulo para chegar ao ponto: 0°\n";
+//        txt += "Distancia: 0m";
+//        pointInfo.setText(txt);
+//        currentPointText.setText("Lat: 0 \n Lon: 0");
+//
+//        currentPoint = new Point(lat, lon);
+//
+//        addPoint.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Telemetry currentPositionTelemetry = new Telemetry();
+//                currentPositionTelemetry.execute((Void[]) null);
+//
+//            }
+//        });
+//
+//        lastPoint = new Point(0, 0);
+//        gpsLocationListener = new GpsLocationListener(this, this);
+//        compassListener = new CompassListener(this, this);
     }
 
     // what to do before background task
@@ -172,5 +203,33 @@ public class MainActivity extends AppCompatActivity implements GpsLocationListen
     public void onAngleChanged(Double angle) {
         // Log.i(TAG, "[ON ANGLE CHANGED] angle: " + angle.toString());
         angleText.setText("Angle: " + angle.toString() + "°");
+    }
+
+
+    @Override
+    public void onBackPressed() {
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    @SuppressWarnings("StatementWithEmptyBody")
+    @Override
+    public boolean onNavigationItemSelected(MenuItem item) {
+        // Handle navigation view item clicks here.
+        int id = item.getItemId();
+
+        if (id == R.id.control) {
+            // Open control activity
+        } else if (id == R.id.sensor_test) {
+            // Open sensor test activity
+        }
+
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
     }
 }
