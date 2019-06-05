@@ -18,13 +18,9 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme"
-        tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".BluetoothActivity"></activity>
-
-        <uses-library
-            android:name="org.apache.http.legacy"
-            android:required="false" />
+        tools:ignore="GoogleAppIndexingWarning"
+        android:theme="@style/AppTheme.NoActionBar">
+        <uses-library android:name="org.apache.http.legacy" android:required="false" />
 
         <activity android:name=".MainActivity">
             <intent-filter>
