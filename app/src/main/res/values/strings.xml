@@ -6,4 +6,7 @@
     <string name="menu_connect_device">Conectar Dispositívo</string>
     <string name="menu_sensor_test">Testar Sensores</string>
     <string name="menu_control">Controlar Robo</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

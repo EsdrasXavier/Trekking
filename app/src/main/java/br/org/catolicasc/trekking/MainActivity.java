@@ -15,9 +15,9 @@ import java.util.ArrayList;
 
 import br.org.catolicasc.trekking.models.Point;
 
-
-public class MainActivity extends AppCompatActivity implements GpsLocationListener.PositionHandler,
-                                                                CompassListener.CompassHandler {
+public class MainActivity
+        extends AppCompatActivity
+        implements NavigationView.OnNavigationItemSelectedListener {
 
     private String TAG = "MainActivity";
     private final int TELEMETRY_CICLES = 5;
