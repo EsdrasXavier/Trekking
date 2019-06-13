@@ -1,5 +1,6 @@
 package br.org.catolicasc.trekking;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -12,7 +13,8 @@ import android.widget.TextView;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity implements GpsLocationListener.PositionHandler, CompassListener.CompassHandler {
+public class MainActivity extends AppCompatActivity implements GpsLocationListener.PositionHandler,
+                                                                CompassListener.CompassHandler {
 
     private String TAG = "MainActivity";
     private final int TELEMETRY_CICLES = 5;
@@ -37,6 +39,7 @@ public class MainActivity extends AppCompatActivity implements GpsLocationListen
     private TextView onTargetView;
     private TextView motorPower;
     private Button addPoint;
+    private Button bluetoothButton;
     private ProgressBar progressBar;
     private GpsLocationListener gpsLocationListener;
     private CompassListener compassListener;
@@ -53,6 +56,7 @@ public class MainActivity extends AppCompatActivity implements GpsLocationListen
         longitudeText = findViewById(R.id.longitude);
         latitudeText = findViewById(R.id.latitude);
         addPoint = findViewById(R.id.addPoint);
+        bluetoothButton = findViewById(R.id.bluetooth);
         progressBar = findViewById(R.id.progressBar);
         currentPointText = findViewById(R.id.currentPoint);
         pointInfo = findViewById(R.id.pointInfo);
@@ -74,10 +78,14 @@ public class MainActivity extends AppCompatActivity implements GpsLocationListen
                 currentPositionTelemetry.execute((Void[]) null);
             }
         });
-
-        lastPoint = new Point(0, 0);
-        gpsLocationListener = new GpsLocationListener(this, this);
-        compassListener = new CompassListener(this, this);
+        Log.i(TAG, "Created button listener");
+        try {
+            lastPoint = new Point(0, 0);
+            gpsLocationListener = new GpsLocationListener(this, this);
+            compassListener = new CompassListener(this, this);
+        } catch (Exception e) {
+            Log.e(TAG, "Error on listeners creation. Error: " + e);
+        }
 
         pid = new PIDController(KP, KD, KI, TOLERANCE);
         pid.setMinInput(0);
@@ -85,6 +93,12 @@ public class MainActivity extends AppCompatActivity implements GpsLocationListen
         pid.setMinOutput(200);
         pid.setMaxOutput(400);
         pid.setSetPoint(90); // Just set 90° as default
+
+
+        bluetoothButton.setOnClickListener(v -> {
+            Intent mIntent = new Intent(v.getContext(), BluetoothView.class);;
+            startActivityForResult(mIntent, 0);
+        });
     }
 
     // what to do before background task

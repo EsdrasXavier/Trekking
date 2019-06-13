@@ -68,6 +68,7 @@ public class GpsLocationListener implements LocationListener,
                 addApi(LocationServices.API).
                 build();
         if (googleApiClient != null) googleApiClient.connect();
+        else Log.i(TAG, "Google api is null.");
     }
 
     private boolean checkforPlayServices() {
