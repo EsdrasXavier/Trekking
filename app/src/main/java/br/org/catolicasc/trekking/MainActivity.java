@@ -96,7 +96,7 @@ public class MainActivity extends AppCompatActivity implements GpsLocationListen
 
 
         bluetoothButton.setOnClickListener(v -> {
-            Intent mIntent = new Intent(v.getContext(), BluetoothView.class);;
+            Intent mIntent = new Intent(v.getContext(), BluetoothActivity.class);;
             startActivityForResult(mIntent, 0);
         });
     }

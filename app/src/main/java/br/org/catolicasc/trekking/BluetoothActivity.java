@@ -20,7 +20,6 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -33,7 +32,7 @@ import java.lang.reflect.Method;
 import java.util.Set;
 import java.util.UUID;
 
-public class BluetoothView extends AppCompatActivity {
+public class BluetoothActivity extends AppCompatActivity {
 
     // GUI Components
     private TextView mBluetoothStatus;
@@ -48,7 +47,7 @@ public class BluetoothView extends AppCompatActivity {
     private ListView mDevicesListView;
     private CheckBox mLED1;
 
-    private final String TAG = BluetoothView.class.getSimpleName();
+    private final String TAG = BluetoothActivity.class.getSimpleName();
     private Handler mHandler; // Our main handler that will receive callback notifications
     private ConnectedThread mConnectedThread; // bluetooth background worker thread to send and receive data
     private BluetoothSocket mBTSocket = null; // bi-directional client-to-client data path
@@ -65,7 +64,7 @@ public class BluetoothView extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_bluetooth_view);
+        setContentView(R.layout.activity_bluetooth);
 
         mBluetoothStatus = findViewById(R.id.bluetoothStatus);
         mReadBuffer = findViewById(R.id.readBuffer);
@@ -82,7 +81,7 @@ public class BluetoothView extends AppCompatActivity {
             mDevicesListView.setAdapter(mBTArrayAdapter); // assign model to view
             mDevicesListView.setOnItemClickListener(mDeviceClickListener);
         } catch (Exception e) {
-            Log.e("BluetoothView", "error");
+            Log.e("BluetoothActivity", "error");
         }
         // Ask for location permission if not already allowed
         if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
@@ -353,7 +352,7 @@ public class BluetoothView extends AppCompatActivity {
                 byte[] bytes = new byte[] { 10, 20, 30 };
                 mmOutStream.write(bytes);
             } catch (IOException e) {
-                Log.i("BluetoothView", "Erron on send data. Err: " + e);
+                Log.i("BluetoothActivity", "Erron on send data. Err: " + e);
             }
         }
 
