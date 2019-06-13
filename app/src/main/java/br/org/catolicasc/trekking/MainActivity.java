@@ -15,9 +15,8 @@ import java.util.ArrayList;
 
 import br.org.catolicasc.trekking.models.Point;
 
-public class MainActivity
-        extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity implements GpsLocationListener.PositionHandler,
+        CompassListener.CompassHandler {
 
     private String TAG = "MainActivity";
     private final int TELEMETRY_CICLES = 5;
@@ -159,7 +158,6 @@ public class MainActivity
 
             Double angle = GpsMath.courseTo(lat, lon, lastPoint.getLat(), lastPoint.getLon());
             Double distance = GpsMath.distanceBetween(lat, lon, lastPoint.getLat(), lastPoint.getLon());
-
             String _angle = new DecimalFormat("#.00").format(angle);
             String _distance = new DecimalFormat("#.00").format(distance);
             String txt = "Angulo para chegar ao ponto: " + _angle + "°\n";
@@ -199,8 +197,8 @@ public class MainActivity
         lon = longitude;
         currentPoint.setLat(lat);
         currentPoint.setLon(lon);
-        latitudeText.setText( "Latitude: " + currentPoint.getLat());
-        longitudeText.setText("Longitude: " + currentPoint.getLon());
+        latitudeText.setText( "Latitude: " + latitude);
+        longitudeText.setText("Longitude: " + longitude);
         calculateDistance();
     }
 
