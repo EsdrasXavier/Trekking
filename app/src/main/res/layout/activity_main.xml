@@ -8,37 +8,40 @@
     tools:context=".MainActivity">
 
     <TextView
-        android:id="@+id/tvAngle"
+        android:id="@+id/tv_angle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
         android:text="0°"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintBottom_toTopOf="@+id/joystick"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 
     <TextView
-        android:id="@+id/tvStrength"
+        android:id="@+id/tv_strength"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginBottom="8dp"
         android:text="0%"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.506"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tvAngle" />
+        app:layout_constraintBottom_toTopOf="@+id/joystick"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <io.github.controlwear.virtual.joystick.android.JoystickView xmlns:custom="http://schemas.android.com/apk/res-auto"
         android:id="@+id/joystick"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        custom:JV_backgroundColor="#009688"
-        custom:JV_borderColor="#00796B"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        custom:JV_backgroundColor="#54A61D3E"
+        custom:JV_borderColor="@color/colorPrimaryDark"
         custom:JV_borderWidth="4dp"
-        custom:JV_buttonColor="#FF6E40"
-        custom:JV_buttonSizeRatio="15%"
+        custom:JV_buttonColor="@color/colorPrimary"
+        custom:JV_buttonSizeRatio="20%"
         custom:JV_fixedCenter="false"
         custom:layout_constraintBottom_toBottomOf="parent"
         custom:layout_constraintEnd_toEndOf="parent"
-        custom:layout_constraintStart_toStartOf="parent"
-        custom:layout_constraintTop_toBottomOf="@+id/tvStrength" />
+        custom:layout_constraintStart_toStartOf="parent" />
 </android.support.constraint.ConstraintLayout>
