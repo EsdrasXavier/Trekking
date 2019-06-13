@@ -2,11 +2,13 @@ package br.org.catolicasc.trekking;
 
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.support.design.widget.NavigationView;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -15,9 +17,9 @@ import java.util.ArrayList;
 
 import br.org.catolicasc.trekking.models.Point;
 
-public class PlaygroundActivity extends AppCompatActivity implements GpsLocationListener.PositionHandler,
+public class PlaygroundActivity extends BaseActivity implements GpsLocationListener.PositionHandler,
         CompassListener.CompassHandler {
-    private String TAG = "MainActivity";
+    private String TAG = "PlaygroundActivity";
     private final int TELEMETRY_CICLES = 5;
     private final int TELEMETRY_DELEAY = 700; /* Will be used each iteration of the telemetry */
 
@@ -51,7 +53,12 @@ public class PlaygroundActivity extends AppCompatActivity implements GpsLocation
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+
+        FrameLayout container = findViewById(R.id.content_frame);
+        getLayoutInflater().inflate(R.layout.activity_playground, container);
+
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView.getMenu().findItem(R.id.playground).setChecked(true);
 
         angleText = findViewById(R.id.angle);
         longitudeText = findViewById(R.id.longitude);

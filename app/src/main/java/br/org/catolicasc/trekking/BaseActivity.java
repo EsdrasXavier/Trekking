@@ -47,8 +47,12 @@ public class BaseActivity extends AppCompatActivity {
                         startActivity(sensor);
                         break;
                     case R.id.connect_device:
-                        Intent devices = new Intent(getApplicationContext(), MainActivity.class);
+                        Intent devices = new Intent(getApplicationContext(), BluetoothActivity.class);
                         startActivity(devices);
+                        break;
+                    case R.id.playground:
+                        Intent pg = new Intent(getApplicationContext(), PlaygroundActivity.class);
+                        startActivity(pg);
                         break;
                 }
                 drawer.closeDrawer(GravityCompat.START);
