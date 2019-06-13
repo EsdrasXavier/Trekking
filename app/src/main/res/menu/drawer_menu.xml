@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/control" android:icon="@drawable/ic_menu_control" android:title="@string/menu_control"></item>
+    <item android:id="@+id/connect_device" android:icon="@drawable/ic_menu_device_connect" android:title="@string/menu_connect_device"></item>
+    <item android:id="@+id/sensor_test" android:icon="@drawable/ic_menu_sensor_test" android:title="@string/menu_sensor_test"></item>
+    <group>
+        <item android:id="@+id/playground" android:icon="@drawable/ic_menu_playground" android:title="Playground"></item>
+    </group>
+</menu>

@@ -11,6 +11,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -20,6 +21,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -32,7 +34,7 @@ import java.lang.reflect.Method;
 import java.util.Set;
 import java.util.UUID;
 
-public class BluetoothActivity extends AppCompatActivity {
+public class BluetoothActivity extends BaseActivity {
 
     // GUI Components
     private TextView mBluetoothStatus;
@@ -64,7 +66,12 @@ public class BluetoothActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_bluetooth);
+
+        FrameLayout container = findViewById(R.id.content_frame);
+        getLayoutInflater().inflate(R.layout.activity_bluetooth, container);
+
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView.getMenu().findItem(R.id.connect_device).setChecked(true);
 
         mBluetoothStatus = findViewById(R.id.bluetoothStatus);
         mReadBuffer = findViewById(R.id.readBuffer);
