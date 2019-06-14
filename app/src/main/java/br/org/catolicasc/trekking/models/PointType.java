@@ -14,6 +14,10 @@ public class PointType {
         this.name = NAMES[this.id - 1];
     }
 
+    public boolean isObstacle() {
+        return id == 2;
+    }
+
     public String getName() {
         return name;
     }
