@@ -3,7 +3,6 @@ package br.org.catolicasc.trekking;
 import android.support.design.widget.NavigationView;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
@@ -27,21 +26,14 @@ public class MainActivity extends BaseActivity {
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.getMenu().findItem(R.id.control).setChecked(true);
 
-        mTextViewAngleLeft = (TextView) findViewById(R.id.tv_angle);
-        mTextViewAngleLeft.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.d(TAG, "angulo");
-            }
-        });
-        mTextViewStrengthLeft = (TextView) findViewById(R.id.tv_strength);
-        JoystickView joystick= (JoystickView) findViewById(R.id.joystick);
-        joystick.setOnMoveListener(new JoystickView.OnMoveListener() {
-            @Override
-            public void onMove(int angle, int strength) {
-                mTextViewAngleLeft.setText(angle + "°");
-                mTextViewStrengthLeft.setText(strength + "%");
-            }
+        mTextViewAngleLeft = findViewById(R.id.tv_angle);
+        mTextViewAngleLeft.setOnClickListener(v -> Log.d(TAG, "angulo"));
+        mTextViewStrengthLeft = findViewById(R.id.tv_strength);
+
+        JoystickView joystick = findViewById(R.id.joystick);
+        joystick.setOnMoveListener((angle, strength) -> {
+            mTextViewAngleLeft.setText(angle + "°");
+            mTextViewStrengthLeft.setText(strength + "%");
         });
     }
 
