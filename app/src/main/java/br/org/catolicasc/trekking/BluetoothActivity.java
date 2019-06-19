@@ -357,7 +357,7 @@ public class BluetoothActivity extends BaseActivity {
         public void write(String input) {
 //            byte[] bytes = input.getBytes();           //converts entered String into bytes
             try {
-                byte[] bytes = new byte[] { 10, 20, 30 };
+                byte[] bytes = new byte[] { 10, 44, 1 , 54, 1};
                 mmOutStream.write(bytes);
             } catch (IOException e) {
                 Log.i("BluetoothActivity", "Erron on send data. Err: " + e);
