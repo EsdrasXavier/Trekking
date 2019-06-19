@@ -11,7 +11,7 @@ public class PIDController {
     private double ki;
     private double tolerance;
     private double setPoint;
-    private double previusError;
+    private double previousError;
     private double totalError;
     private double result;
     private double maxInput;
@@ -50,6 +50,16 @@ public class PIDController {
         this.reset();
     }
 
+    // Return a new instance with default values
+    public static PIDController fabricate(double kp, double kd, double ki, double tolerance) {
+        PIDController pid = new PIDController(kp, kd, ki, tolerance);
+        pid.setMinInput(0);
+        pid.setMaxInput(359);
+        pid.setMinOutput(200);
+        pid.setMaxOutput(400);
+        pid.setSetPoint(90); // Just set 90° as default
+        return pid;
+    }
 
     public double performPid(double angle) {
         this.error = this.setPoint - angle;
@@ -59,8 +69,8 @@ public class PIDController {
             this.totalError += this.error;
         }
 
-        this.result = this.kp * this.error + this.ki * this.totalError + this.kd * (this.error - this.previusError);
-        this.previusError = this.error;
+        this.result = this.kp * this.error + this.ki * this.totalError + this.kd * (this.error - this.previousError);
+        this.previousError = this.error;
         Log.i(TAG, "Result: " + result);
         int sign = 1;
         if (this.result < 0) sign = -1;
@@ -82,7 +92,7 @@ public class PIDController {
 
     public void reset() {
         this.error = 0;
-        this.previusError = 0;
+        this.previousError = 0;
         this.totalError = 0;
     }
 
@@ -127,12 +137,12 @@ public class PIDController {
         this.setPoint = setPoint;
     }
 
-    public double getPreviusError() {
-        return previusError;
+    public double getPreviousError() {
+        return previousError;
     }
 
-    public void setPreviusError(double previusError) {
-        this.previusError = previusError;
+    public void setPreviousError(double previousError) {
+        this.previousError = previousError;
     }
 
     public double getTotalError() {

@@ -19,6 +19,8 @@ public class PointsRecyclerViewAdapter extends RecyclerView.Adapter<PointsRecycl
     private static final String TAG = "PointsRecyclerViewAdapter";
     private List<Point> mPoints;
     private Context mContext;
+    private Point mRecentlyDeletedPoint;
+    private int mRecentlyDeletedPointPosition;
 
     public PointsRecyclerViewAdapter(Context context, List<Point> Points) {
         this.mPoints = Points;
@@ -32,6 +34,19 @@ public class PointsRecyclerViewAdapter extends RecyclerView.Adapter<PointsRecycl
 
     public Point getPoint(int index) {
         return ((mPoints != null) && (mPoints.size() != 0) ? mPoints.get(index) : null);
+    }
+
+    public void deleteItem(int index) {
+        // @TODO Add undo option
+        mRecentlyDeletedPoint = mPoints.get(index);
+        mRecentlyDeletedPointPosition = index;
+        mPoints.remove(index);
+        notifyItemRemoved(index);
+        // notifyDataSetChanged();
+    }
+
+    public Context getContext() {
+        return mContext;
     }
 
     @NonNull

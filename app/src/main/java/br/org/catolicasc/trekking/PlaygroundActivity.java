@@ -3,7 +3,6 @@ package br.org.catolicasc.trekking;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.design.widget.NavigationView;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -44,11 +43,11 @@ public class PlaygroundActivity extends BaseActivity implements GpsLocationListe
     private Button addPoint;
     private Button bluetoothButton;
     private ProgressBar progressBar;
-    private GpsLocationListener gpsLocationListener;
-    private CompassListener compassListener;
+    private GpsLocationListener mGpsLocationListener;
+    private CompassListener mCompassListener;
     private double lat;
     private double lon;
-    private PIDController pid;
+    private PIDController mPIDController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,20 +88,13 @@ public class PlaygroundActivity extends BaseActivity implements GpsLocationListe
         Log.i(TAG, "Created button listener");
         try {
             lastPoint = new Point(0, 0);
-            gpsLocationListener = new GpsLocationListener(this, this);
-            compassListener = new CompassListener(this, this);
+            mGpsLocationListener = new GpsLocationListener(this, this);
+            mCompassListener = new CompassListener(this, this);
         } catch (Exception e) {
             Log.e(TAG, "Error on listeners creation. Error: " + e);
         }
 
-        pid = new PIDController(KP, KD, KI, TOLERANCE);
-        pid.setMinInput(0);
-        pid.setMaxInput(359);
-        pid.setMinOutput(200);
-        pid.setMaxOutput(400);
-        pid.setSetPoint(90); // Just set 90° as default
-
-
+        mPIDController = PIDController.fabricate(KP, KD, KI, TOLERANCE);
         bluetoothButton.setOnClickListener(v -> {
             Intent mIntent = new Intent(v.getContext(), BluetoothActivity.class);;
             startActivityForResult(mIntent, 0);
@@ -170,7 +162,7 @@ public class PlaygroundActivity extends BaseActivity implements GpsLocationListe
             txt += "Distancia: " + _distance + "m";
             pointInfo.setText(txt);
             if (angle > 0) {
-                pid.setSetPoint(angle);
+                mPIDController.setSetPoint(angle);
             }
         }
     }
@@ -213,14 +205,14 @@ public class PlaygroundActivity extends BaseActivity implements GpsLocationListe
         // Log.i(TAG, "[ON ANGLE CHANGED] angle: " + angle.toString());
         angleText.setText("Angle: " + angle.toString() + "°");
 
-        if (pid != null) {
-            Double power = pid.performPid(angle);
+        if (mPIDController != null) {
+            Double power = mPIDController.performPid(angle);
             String myPower = power.toString() + " == " + (- power);
 
             String isOnTarget = "On target: Não";
-            if (pid.onTarget()) {
+            if (mPIDController.onTarget()) {
                 isOnTarget = "On target: Sim";
-                pid.reset();
+                mPIDController.reset();
             }
 
             motorPower.setText(myPower);

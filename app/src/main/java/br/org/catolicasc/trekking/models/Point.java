@@ -7,8 +7,8 @@ public class Point implements Serializable {
     public static final String ACTIVITY_PARAM = "SERIALIZED_GEO_POINT";
 
     private long id;
-    private double lat;
-    private double lon;
+    private double lat = 0.0;
+    private double lon = 0.0;
     private int typeId;
     private PointType type;
 
@@ -18,6 +18,11 @@ public class Point implements Serializable {
         this.lat = lat;
         this.lon = lon;
     }
+
+    public boolean isValid(){
+        return lat != 0.0 && lon != 0.0;
+    }
+    public boolean isPersisted() { return id > 0; }
 
     public int getTypeId() {
         return typeId;

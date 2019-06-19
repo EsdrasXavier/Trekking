@@ -1,32 +1,58 @@
 package br.org.catolicasc.trekking;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.os.AsyncTask;
 import android.support.design.widget.NavigationView;
 import android.os.Bundle;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 import br.org.catolicasc.trekking.adapters.PointsRecyclerViewAdapter;
-import br.org.catolicasc.trekking.adapters.RecyclerItemClickListener;
+import br.org.catolicasc.trekking.adapters.SwipeToDeleteCallback;
 import br.org.catolicasc.trekking.models.Point;
 import br.org.catolicasc.trekking.presenters.MainPresenter;
 import br.org.catolicasc.trekking.views.MainView;
 import io.github.controlwear.virtual.joystick.android.JoystickView;
 
-public class MainActivity extends BaseActivity implements MainView {
+public class MainActivity extends BaseActivity implements MainView, CompassListener.CompassHandler, GpsLocationListener.PositionHandler {
     private String TAG = "MainActivity";
+    /**
+     * Constants to use in the PID controller
+     */
+    private final double KP = 3.5;
+    private final double KD = 0.05;
+    private final double KI = 10.5;
+    private final double TOLERANCE = 5.0;
 
     private PointsRecyclerViewAdapter pointsRecyclerViewAdapter;
     private MainPresenter presenter;
-    protected TextView mTextViewAngleLeft;
-    protected TextView mTextViewStrengthLeft;
+    private CompassListener mCompassListener;
+    private GpsLocationListener mGpsLocationListener;
+    private Point currentPoint;
+    private Point prevPoint;
+    private PIDController mPIDController;
 
+    // View
+    protected TextView mTextViewControlAngle;
+    protected TextView mTextViewControlStrength;
+    protected TextView mTextViewAngle;
+    protected TextView mTextViewLat;
+    protected TextView mTextViewLon;
+    protected TextView mTextViewDirection;
+    protected Button mButtonAdd;
+    protected Button mButtonStart;
+    protected Button mButtonStop;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,27 +65,55 @@ public class MainActivity extends BaseActivity implements MainView {
 
         this.presenter = new MainPresenter(this);
 
+        // Setup Points Recycler View
         RecyclerView recyclerView = findViewById(R.id.rv_points);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-//        recyclerView.addOnItemTouchListener(new RecyclerItemClickListener(this, recyclerView, this));
+        // recyclerView.addOnItemTouchListener(new RecyclerItemClickListener(this, recyclerView, this));
         pointsRecyclerViewAdapter = new PointsRecyclerViewAdapter(this, new ArrayList<Point>());
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new SwipeToDeleteCallback(pointsRecyclerViewAdapter));
+        itemTouchHelper.attachToRecyclerView(recyclerView);
         recyclerView.setAdapter(pointsRecyclerViewAdapter);
+        recyclerView.addItemDecoration(new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL));
 
+        // Setup compass listener
+        mCompassListener = new CompassListener(this, this);
+        // Setup Gps listener
+        mGpsLocationListener = new GpsLocationListener(this, this);
 
-        mTextViewAngleLeft = (TextView) findViewById(R.id.tv_angle);
-        mTextViewAngleLeft.setOnClickListener(new View.OnClickListener() {
+        // Assign view variables
+        mTextViewAngle = findViewById(R.id.tv_angle);
+        mTextViewControlAngle = (TextView) findViewById(R.id.tv_control_angle);
+        mTextViewControlStrength = findViewById(R.id.tv_control_strength);
+        mTextViewLat = findViewById(R.id.tv_lat);
+        mTextViewLon = findViewById(R.id.tv_lon);
+        mTextViewDirection = findViewById(R.id.tv_direction);
+        mButtonAdd = findViewById(R.id.btn_add);
+        mButtonStart = findViewById(R.id.btn_start);
+        mButtonStop = findViewById(R.id.btn_stop);
+
+        // Setup Location Listener
+        currentPoint = new Point(0, 0);
+        prevPoint = new Point(0, 0);
+        mPIDController = PIDController.fabricate(KP, KD, KI, TOLERANCE);
+        setupJoystick();
+
+        // Setup Points Form;
+        mButtonAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d(TAG, "angulo");
+                Telemetry currentPositionTelemetry = new Telemetry();
+                currentPositionTelemetry.execute((Void[]) null);
             }
         });
-        mTextViewStrengthLeft = (TextView) findViewById(R.id.tv_strength);
-        JoystickView joystick= (JoystickView) findViewById(R.id.joystick);
+    }
+
+    private void setupJoystick() {
+        JoystickView joystick = findViewById(R.id.joystick);
         joystick.setOnMoveListener(new JoystickView.OnMoveListener() {
             @Override
             public void onMove(int angle, int strength) {
-                mTextViewAngleLeft.setText(angle + "°");
-                mTextViewStrengthLeft.setText(strength + "%");
+                mTextViewControlAngle.setText(angle + "°");
+                mTextViewControlStrength.setText(strength + "%");
             }
         });
     }
@@ -78,5 +132,116 @@ public class MainActivity extends BaseActivity implements MainView {
     @Override
     public Context getContextForPresenter() {
         return getApplicationContext();
+    }
+
+    @Override
+    public void successfullySavedPoint(Point p) {
+
+    }
+
+    @Override
+    public void successfullyRemovedPoint(Point p) {
+
+    }
+
+    @Override
+    public void onAngleChanged(Double angle) {
+        mTextViewAngle.setText(angle.toString() + "°");
+
+        if (mPIDController != null) {
+            Double power = mPIDController.performPid(angle);
+            mTextViewDirection.setText("± " + power);
+            if (mPIDController.onTarget()) {
+                mPIDController.reset();
+                mTextViewDirection.setTextColor(Color.BLACK);
+            } else {
+                mTextViewDirection.setTextColor(Color.RED);
+            }
+        }
+    }
+
+    @Override
+    public void onPositionChanged(Double latitude, Double longitude) {
+        // Log.d(TAG, "[ON POSITION CHANGED] Lat: " + latitude.toString() + " - Lon: " + longitude.toString());
+
+        if (currentPoint == null) {
+            return;
+        }
+        currentPoint.setLat(latitude);
+        currentPoint.setLon(longitude);
+        mTextViewLat.setText(latitude.toString());
+        mTextViewLon.setText(longitude.toString());
+        calculateDistance();
+    }
+
+    private void calculateDistance() {
+        if (prevPoint == null) {
+            return;
+        }
+
+        Double angle = GpsMath.courseTo(currentPoint.getLat(), currentPoint.getLon(), prevPoint.getLat(), prevPoint.getLon());
+        Double distance = GpsMath.distanceBetween(currentPoint.getLat(), currentPoint.getLon(), prevPoint.getLat(), prevPoint.getLon());
+        String angleStr = new DecimalFormat("#.00").format(angle);
+        String distanceStr = new DecimalFormat("#.00").format(distance);
+        String txt = "Angulo para chegar ao ponto: " + angleStr + "°\n";
+        txt += "Distancia: " + distanceStr + "m";
+        Log.d(TAG, txt);
+        if (angle > 0) {
+            mPIDController.setSetPoint(angle);
+        }
+    }
+
+    private void disableEnableControls(boolean enable){
+        mButtonAdd.setEnabled(enable);
+        mButtonStart.setEnabled(enable);
+        mButtonStop.setEnabled(enable);
+    }
+
+    private class Telemetry extends AsyncTask<Void, Void, Void> {
+        private final int TELEMETRY_CICLES = 5;
+        private final int TELEMETRY_DELEAY = 700; /* Will be used each iteration of the telemetry */
+
+        @Override
+        protected void onPreExecute() {
+            disableEnableControls(false);
+//            runOnUiThread(() -> progressBar.setVisibility(View.VISIBLE));
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            double lat = 0;
+            double lon = 0;
+
+            for (int i = 0; i < TELEMETRY_CICLES; i++) {
+                lat += currentPoint.getLat();
+                lon += currentPoint.getLon();
+
+                try {
+                    Thread.sleep(TELEMETRY_DELEAY);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            lat = lat / TELEMETRY_CICLES;
+            lon = lon / TELEMETRY_CICLES;
+            prevPoint = new Point(lat, lon);
+
+            runOnUiThread(() -> {
+                mTextViewLat.setText(Double.toString(prevPoint.getLat()));
+                mTextViewLon.setText(Double.toString(prevPoint.getLon()));
+                presenter.savePoint(prevPoint);
+                calculateDistance();
+            });
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result) {
+
+            disableEnableControls(true);
+//            runOnUiThread(() -> progressBar.setVisibility(View.INVISIBLE));
+        }
     }
 }
