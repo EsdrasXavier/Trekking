@@ -203,7 +203,7 @@ public class MainActivity extends BaseActivity implements CompassListener.Compas
         currentPoint.setLat(latitude);
         currentPoint.setLon(longitude);
         mTextViewLat.setText(Point.preciseLatLon(8, latitude));
-        mTextViewLon.setText(Point.preciseLatLon(8, latitude));
+        mTextViewLon.setText(Point.preciseLatLon(8, longitude));
         calculateDistance();
     }
 
