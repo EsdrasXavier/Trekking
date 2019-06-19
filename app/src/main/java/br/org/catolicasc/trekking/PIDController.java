@@ -71,7 +71,7 @@ public class PIDController {
 
         this.result = this.kp * this.error + this.ki * this.totalError + this.kd * (this.error - this.previousError);
         this.previousError = this.error;
-        Log.i(TAG, "Result: " + result);
+//        Log.d(TAG, "Result: " + result);
         int sign = 1;
         if (this.result < 0) sign = -1;
 

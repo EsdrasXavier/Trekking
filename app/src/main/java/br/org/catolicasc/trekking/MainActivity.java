@@ -17,15 +17,17 @@ import android.widget.TextView;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.List;
 
 import br.org.catolicasc.trekking.adapters.PointsRecyclerViewAdapter;
 import br.org.catolicasc.trekking.adapters.SwipeToDeleteCallback;
+import br.org.catolicasc.trekking.dal.PointDal;
 import br.org.catolicasc.trekking.models.Point;
-import br.org.catolicasc.trekking.presenters.MainPresenter;
-import br.org.catolicasc.trekking.views.MainView;
 import io.github.controlwear.virtual.joystick.android.JoystickView;
 
-public class MainActivity extends BaseActivity implements MainView, CompassListener.CompassHandler, GpsLocationListener.PositionHandler {
+public class MainActivity extends BaseActivity implements CompassListener.CompassHandler,
+        GpsLocationListener.PositionHandler,
+        PointsRecyclerViewAdapter.PointsCRUD {
     private String TAG = "MainActivity";
     /**
      * Constants to use in the PID controller
@@ -36,13 +38,12 @@ public class MainActivity extends BaseActivity implements MainView, CompassListe
     private final double TOLERANCE = 5.0;
 
     private PointsRecyclerViewAdapter pointsRecyclerViewAdapter;
-    private MainPresenter presenter;
     private CompassListener mCompassListener;
     private GpsLocationListener mGpsLocationListener;
     private Point currentPoint;
     private Point prevPoint;
     private PIDController mPIDController;
-
+    private Context mContext;
     // View
     protected TextView mTextViewControlAngle;
     protected TextView mTextViewControlStrength;
@@ -63,18 +64,17 @@ public class MainActivity extends BaseActivity implements MainView, CompassListe
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.getMenu().findItem(R.id.control).setChecked(true);
 
-        this.presenter = new MainPresenter(this);
-
         // Setup Points Recycler View
         RecyclerView recyclerView = findViewById(R.id.rv_points);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         // recyclerView.addOnItemTouchListener(new RecyclerItemClickListener(this, recyclerView, this));
-        pointsRecyclerViewAdapter = new PointsRecyclerViewAdapter(this, new ArrayList<Point>());
+        pointsRecyclerViewAdapter = new PointsRecyclerViewAdapter(this, new ArrayList<Point>(), this);
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(new SwipeToDeleteCallback(pointsRecyclerViewAdapter));
         itemTouchHelper.attachToRecyclerView(recyclerView);
         recyclerView.setAdapter(pointsRecyclerViewAdapter);
         recyclerView.addItemDecoration(new DividerItemDecoration(recyclerView.getContext(), DividerItemDecoration.VERTICAL));
 
+        mContext = getApplicationContext();
         // Setup compass listener
         mCompassListener = new CompassListener(this, this);
         // Setup Gps listener
@@ -122,26 +122,59 @@ public class MainActivity extends BaseActivity implements MainView, CompassListe
     protected void onResume() {
         super.onResume();
         if (pointsRecyclerViewAdapter != null) {
-            pointsRecyclerViewAdapter.setPoints(presenter.fetchPoints());
+            pointsRecyclerViewAdapter.setPoints(fetchPoints());
             Log.d(TAG, "onResume: send message to the recycler view reload data");
         } else {
             Log.e(TAG, "onResume: recycler view is not defined");
         }
     }
 
-    @Override
-    public Context getContextForPresenter() {
-        return getApplicationContext();
+    public List<Point> fetchPoints() {
+        PointDal dal = new PointDal(mContext);
+//        Point p = new Point(-26.4673054, -49.1158967);
+//        dal.createGeographicPoint(p);
+        return dal.findAllGeographicPoints();
+    }
+
+    public boolean savePoint(Point point) {
+        if (!point.isValid()) {
+            return false;
+        }
+
+        PointDal dal = new PointDal(mContext);
+        if (point.isPersisted()) {
+            if (dal.updateGeographicPoint(point)) {
+                Log.d(TAG, "Successfully updated Point: "+ point.getId());
+            } else {
+                Log.d(TAG, "Failed to update Point");
+            }
+        } else {
+            long id = dal.createGeographicPoint(point);
+            if (id > 0) {
+                point.setId(id);
+                pointsRecyclerViewAdapter.addPoints(point);
+                Log.d(TAG, "Successfully created a new Point with id: " + id);
+                return true;
+            } else {
+                Log.d(TAG, "Failed to create a new Point");
+            }
+        }
+
+
+        return false;
     }
 
     @Override
-    public void successfullySavedPoint(Point p) {
-
+    public void updatePoint(Point p) {
+        savePoint(p);
     }
 
     @Override
-    public void successfullyRemovedPoint(Point p) {
+    public void deletePoint(Point p) {
+        if (!p.isPersisted()) { return; }
 
+        PointDal dal = new PointDal(mContext);
+        dal.deleteGeographicPoint(p.getId());
     }
 
     @Override
@@ -169,8 +202,8 @@ public class MainActivity extends BaseActivity implements MainView, CompassListe
         }
         currentPoint.setLat(latitude);
         currentPoint.setLon(longitude);
-        mTextViewLat.setText(latitude.toString());
-        mTextViewLon.setText(longitude.toString());
+        mTextViewLat.setText(Point.preciseLatLon(8, latitude));
+        mTextViewLon.setText(Point.preciseLatLon(8, latitude));
         calculateDistance();
     }
 
@@ -180,12 +213,12 @@ public class MainActivity extends BaseActivity implements MainView, CompassListe
         }
 
         Double angle = GpsMath.courseTo(currentPoint.getLat(), currentPoint.getLon(), prevPoint.getLat(), prevPoint.getLon());
-        Double distance = GpsMath.distanceBetween(currentPoint.getLat(), currentPoint.getLon(), prevPoint.getLat(), prevPoint.getLon());
-        String angleStr = new DecimalFormat("#.00").format(angle);
-        String distanceStr = new DecimalFormat("#.00").format(distance);
-        String txt = "Angulo para chegar ao ponto: " + angleStr + "°\n";
-        txt += "Distancia: " + distanceStr + "m";
-        Log.d(TAG, txt);
+//        Double distance = GpsMath.distanceBetween(currentPoint.getLat(), currentPoint.getLon(), prevPoint.getLat(), prevPoint.getLon());
+//        String angleStr = new DecimalFormat("#.00").format(angle);
+//        String distanceStr = new DecimalFormat("#.00").format(distance);
+//        String txt = "Angulo para chegar ao ponto: " + angleStr + "°\n";
+//        txt += "Distancia: " + distanceStr + "m";
+//        Log.d(TAG, txt);
         if (angle > 0) {
             mPIDController.setSetPoint(angle);
         }
@@ -225,12 +258,13 @@ public class MainActivity extends BaseActivity implements MainView, CompassListe
 
             lat = lat / TELEMETRY_CICLES;
             lon = lon / TELEMETRY_CICLES;
+
             prevPoint = new Point(lat, lon);
 
             runOnUiThread(() -> {
-                mTextViewLat.setText(Double.toString(prevPoint.getLat()));
-                mTextViewLon.setText(Double.toString(prevPoint.getLon()));
-                presenter.savePoint(prevPoint);
+//                mTextViewLat.setText(prevPoint.getPreciseLat(8));
+//                mTextViewLon.setText(prevPoint.getPreciseLon(8));
+                savePoint(prevPoint);
                 calculateDistance();
             });
 

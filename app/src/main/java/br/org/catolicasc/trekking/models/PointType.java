@@ -1,7 +1,7 @@
 package br.org.catolicasc.trekking.models;
 
 public class PointType {
-    private static final String[] NAMES = {"Novo Curso", "Obstáculo"};
+    public static final String[] NAMES = {"Novo Curso", "Obstáculo"};
     private String name;
     private int id;
 

@@ -19,6 +19,14 @@ public class Point implements Serializable {
         this.lon = lon;
     }
 
+    public String getPreciseLat(int precision) {
+        return Point.preciseLatLon(precision, lat);
+    }
+
+    public String getPreciseLon(int precision) {
+        return Point.preciseLatLon(precision, lon);
+    }
+
     public boolean isValid(){
         return lat != 0.0 && lon != 0.0;
     }
@@ -58,5 +66,10 @@ public class Point implements Serializable {
 
     public PointType getType() {
         return new PointType(getTypeId());
+    }
+
+    public static String preciseLatLon(int precision, double val) {
+        String mask = "%."+ precision + "f";
+        return String.format(mask, val);
     }
 }
