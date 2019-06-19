@@ -147,7 +147,7 @@ public class GpsLocationListener implements LocationListener,
                 positionHandler.onPositionChanged(currentLatitude, currentLongitude);
             }
 
-            Log.i(TAG, "[onLocationChanged] Lat: " + currentLatitude + " - Long: " + currentLongitude);
+//            Log.i(TAG, "[onLocationChanged] Lat: " + currentLatitude + " - Long: " + currentLongitude);
         }
     }
 }

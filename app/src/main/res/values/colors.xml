@@ -4,4 +4,8 @@
     <color name="colorPrimaryDark">#5C0117</color>
     <color name="colorAccent">#A2EC0F</color>
     <color name="white">#FFF</color>
+    <color name="stopBtnBg">#E53935</color>
+    <color name="startBtnBg">#43A047</color>
+    <color name="separator">#ccc</color>
+    <color name="danger">#E53935</color>
 </resources>
