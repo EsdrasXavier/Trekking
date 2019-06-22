@@ -21,7 +21,6 @@
         android:theme="@style/AppTheme.NoActionBar"
         tools:ignore="GoogleAppIndexingWarning">
         <activity android:name=".PlaygroundActivity"></activity>
-        <activity android:name=".BluetoothActivity"></activity>
 
         <uses-library
             android:name="org.apache.http.legacy"
@@ -34,6 +33,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <service android:name=".ConnectionService"
+            android:enabled="true" />
     </application>
-
 </manifest>
