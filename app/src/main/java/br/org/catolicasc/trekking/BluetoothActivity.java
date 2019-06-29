@@ -45,7 +45,6 @@ public class BluetoothActivity extends Fragment {
     private Set<BluetoothDevice> mPairedDevices;
     private ArrayAdapter<String> mBTArrayAdapter;
     private ListView mDevicesListView;
-    private CheckBox mLED1;
 
     private final String TAG = BluetoothActivity.class.getSimpleName();
     private Handler mHandler; // Our main handler that will receive callback notifications
@@ -60,18 +59,16 @@ public class BluetoothActivity extends Fragment {
     private Context context;
 
 
-    public BluetoothActivity() {
-
-    }
+    public BluetoothActivity() { }
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        getActivity().setTitle("Connectar dispositovo");
+        getActivity().setTitle("Connect to device");
     }
 
-    @SuppressLint("HandlerLeak")
+    @SuppressLint({"HandlerLeak", "LogNotTimber", "SetTextI18n"})
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -83,7 +80,6 @@ public class BluetoothActivity extends Fragment {
         mOffBtn = rootView.findViewById(R.id.off);
         mDiscoverBtn = rootView.findViewById(R.id.discover);
         mListPairedDevicesBtn = rootView.findViewById(R.id.PairedBtn);
-        mLED1 = rootView.findViewById(R.id.checkboxLED1);
 
 
         mBTArrayAdapter = new ArrayAdapter<String>(this.context, android.R.layout.simple_list_item_1);
@@ -130,20 +126,6 @@ public class BluetoothActivity extends Fragment {
             mBluetoothStatus.setText("Status: Bluetooth not found");
             Toast.makeText(this.context,"Bluetooth device not found!",Toast.LENGTH_SHORT).show();
         } else {
-            mLED1.setOnClickListener(v -> {
-
-                if (mBluetoothService.getState() != BluetoothService.STATE_CONNECTED) {
-                    Toast.makeText(getActivity(), "Not connected", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                if(mBluetoothService != null) {//First check to make sure thread created
-                    Log.i(TAG, "Sending data");
-                    byte a[] = new byte[] {20, 30, 40};
-                    mBluetoothService.write(a);
-                }
-            });
-
-
             mScanBtn.setOnClickListener(this::bluetoothOn);
             mOffBtn.setOnClickListener(this::bluetoothOff);
             mListPairedDevicesBtn.setOnClickListener(this::listPairedDevices);
@@ -177,6 +159,7 @@ public class BluetoothActivity extends Fragment {
     }
 
 
+    @SuppressLint("SetTextI18n")
     private void bluetoothOn(View view){
         if (!mBTAdapter.isEnabled()) {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
@@ -190,6 +173,7 @@ public class BluetoothActivity extends Fragment {
     }
 
     // Enter here after user selects "yes" or "no" to enabling radio
+    @SuppressLint("SetTextI18n")
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent Data){
         // Check which request we're responding to
@@ -203,6 +187,7 @@ public class BluetoothActivity extends Fragment {
         }
     }
 
+    @SuppressLint("SetTextI18n")
     private void bluetoothOff(View view){
         mBTAdapter.disable(); // turn off
         mBluetoothStatus.setText("Bluetooth disabled");
