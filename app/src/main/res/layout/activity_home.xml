@@ -236,7 +236,19 @@
         app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
-        android:id="@+id/tv_direction_label"
+        android:id="@+id/tv_distance_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginBottom="8dp"
+        android:text="Distância:"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/tv_direction"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/tv_direction_label2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
@@ -251,14 +263,13 @@
         android:id="@+id/tv_direction"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="3dp"
+        android:layout_marginStart="8dp"
         android:layout_marginBottom="8dp"
         android:text="± 0"
         android:textSize="12sp"
         app:layout_constraintBottom_toTopOf="@+id/tv_sep_lat2"
         app:layout_constraintEnd_toEndOf="@+id/tv_sep_control"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toEndOf="@+id/tv_direction_label" />
+        app:layout_constraintStart_toEndOf="@+id/tv_direction_label2" />
 
     <Button
         android:id="@+id/btn_add"
@@ -284,6 +295,17 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/rv_points" />
+
+    <TextView
+        android:id="@+id/tv_distance"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginBottom="8dp"
+        android:text="0"
+        app:layout_constraintBottom_toTopOf="@+id/tv_direction"
+        app:layout_constraintEnd_toEndOf="@+id/tv_direction"
+        app:layout_constraintStart_toEndOf="@+id/tv_distance_label" />
 
 </android.support.constraint.ConstraintLayout>
 

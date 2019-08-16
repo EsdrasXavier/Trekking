@@ -50,6 +50,7 @@ public class PIDController {
         this.reset();
     }
 
+    // TODO: transform into Singleton
     // Return a new instance with default values
     public static PIDController fabricate(double kp, double kd, double ki, double tolerance) {
         PIDController pid = new PIDController(kp, kd, ki, tolerance);

@@ -16,6 +16,7 @@
 
 package br.org.catolicasc.trekking;
 
+import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
@@ -31,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
+import java.lang.reflect.Method;
 import java.util.UUID;
 
 /**
@@ -85,6 +87,7 @@ public class BluetoothService implements Serializable {
     /**
      * Update UI title according to the current state of the chat connection
      */
+    @SuppressLint("LogNotTimber")
     private synchronized void updateUserInterfaceTitle() {
         mState = getState();
         Log.d(TAG, "updateUserInterfaceTitle() " + mNewState + " -> " + mState);
@@ -325,6 +328,7 @@ public class BluetoothService implements Serializable {
             mState = STATE_LISTEN;
         }
 
+        @SuppressLint("LogNotTimber")
         public void run() {
             Log.d(TAG, "Socket Type: " + mSocketType +
                     "BEGIN mAcceptThread" + this);
@@ -391,6 +395,7 @@ public class BluetoothService implements Serializable {
         private final BluetoothDevice mmDevice;
         private String mSocketType;
 
+        @SuppressLint("LogNotTimber")
         public ConnectThread(BluetoothDevice device, boolean secure) {
             mmDevice = device;
             BluetoothSocket tmp = null;
@@ -400,19 +405,19 @@ public class BluetoothService implements Serializable {
             // given BluetoothDevice
             try {
                 if (secure) {
-                    tmp = device.createRfcommSocketToServiceRecord(
-                            MY_UUID_SECURE);
+                    tmp = device.createRfcommSocketToServiceRecord(MY_UUID_SECURE);
                 } else {
-                    tmp = device.createInsecureRfcommSocketToServiceRecord(
-                            MY_UUID_INSECURE);
+                    tmp = device.createInsecureRfcommSocketToServiceRecord(MY_UUID_INSECURE);
                 }
             } catch (IOException e) {
                 Log.e(TAG, "Socket Type: " + mSocketType + "create() failed", e);
             }
+
             mmSocket = tmp;
             mState = STATE_CONNECTING;
         }
 
+        @SuppressLint("LogNotTimber")
         public void run() {
             Log.i(TAG, "BEGIN mConnectThread SocketType:" + mSocketType);
             setName("ConnectThread" + mSocketType);
@@ -446,6 +451,7 @@ public class BluetoothService implements Serializable {
             connected(mmSocket, mmDevice, mSocketType);
         }
 
+        @SuppressLint("LogNotTimber")
         public void cancel() {
             try {
                 mmSocket.close();
@@ -464,6 +470,7 @@ public class BluetoothService implements Serializable {
         private final InputStream mmInStream;
         private final OutputStream mmOutStream;
 
+        @SuppressLint("LogNotTimber")
         public ConnectedThread(BluetoothSocket socket, String socketType) {
             Log.d(TAG, "create ConnectedThread: " + socketType);
             mmSocket = socket;
@@ -483,6 +490,7 @@ public class BluetoothService implements Serializable {
             mState = STATE_CONNECTED;
         }
 
+        @SuppressLint("LogNotTimber")
         public void run() {
             Log.i(TAG, "BEGIN mConnectedThread");
             byte[] buffer = new byte[1024];
@@ -510,6 +518,7 @@ public class BluetoothService implements Serializable {
          *
          * @param buffer The bytes to write
          */
+        @SuppressLint("LogNotTimber")
         public void write(byte[] buffer) {
             try {
                 mmOutStream.write(buffer);
@@ -522,6 +531,7 @@ public class BluetoothService implements Serializable {
             }
         }
 
+        @SuppressLint("LogNotTimber")
         public void cancel() {
             try {
                 mmSocket.close();
@@ -530,4 +540,126 @@ public class BluetoothService implements Serializable {
             }
         }
     }
+
+
+    public static interface BluetoothSocketWrapper {
+
+        InputStream getInputStream() throws IOException;
+
+        OutputStream getOutputStream() throws IOException;
+
+        String getRemoteDeviceName();
+
+        void connect() throws IOException;
+
+        String getRemoteDeviceAddress();
+
+        void close() throws IOException;
+
+        BluetoothSocket getUnderlyingSocket();
+
+    }
+
+    public static class NativeBluetoothSocket implements BluetoothSocketWrapper {
+
+        private BluetoothSocket socket;
+
+        public NativeBluetoothSocket(BluetoothSocket tmp) {
+            this.socket = tmp;
+        }
+
+        @Override
+        public InputStream getInputStream() throws IOException {
+            return socket.getInputStream();
+        }
+
+        @Override
+        public OutputStream getOutputStream() throws IOException {
+            return socket.getOutputStream();
+        }
+
+        @Override
+        public String getRemoteDeviceName() {
+            return socket.getRemoteDevice().getName();
+        }
+
+        @Override
+        public void connect() throws IOException {
+            socket.connect();
+        }
+
+        @Override
+        public String getRemoteDeviceAddress() {
+            return socket.getRemoteDevice().getAddress();
+        }
+
+        @Override
+        public void close() throws IOException {
+            socket.close();
+        }
+
+        @Override
+        public BluetoothSocket getUnderlyingSocket() {
+            return socket;
+        }
+
+    }
+
+
+    public class FallbackBluetoothSocket extends NativeBluetoothSocket {
+
+        private BluetoothSocket fallbackSocket;
+
+        public FallbackBluetoothSocket(BluetoothSocket tmp) throws FallbackException {
+            super(tmp);
+            try
+            {
+                Class<?> clazz = tmp.getRemoteDevice().getClass();
+                Class<?>[] paramTypes = new Class<?>[] {Integer.TYPE};
+                Method m = clazz.getMethod("createRfcommSocket", paramTypes);
+                Object[] params = new Object[] {Integer.valueOf(1)};
+                fallbackSocket = (BluetoothSocket) m.invoke(tmp.getRemoteDevice(), params);
+            }
+            catch (Exception e)
+            {
+                throw new FallbackException(e);
+            }
+        }
+
+        @Override
+        public InputStream getInputStream() throws IOException {
+            return fallbackSocket.getInputStream();
+        }
+
+        @Override
+        public OutputStream getOutputStream() throws IOException {
+            return fallbackSocket.getOutputStream();
+        }
+
+
+        @Override
+        public void connect() throws IOException {
+            fallbackSocket.connect();
+        }
+
+
+        @Override
+        public void close() throws IOException {
+            fallbackSocket.close();
+        }
+    }
+
+    public static class FallbackException extends Exception {
+
+        /**
+         *
+         */
+        private static final long serialVersionUID = 1L;
+
+        public FallbackException(Exception e) {
+            super(e);
+        }
+
+    }
+
 }

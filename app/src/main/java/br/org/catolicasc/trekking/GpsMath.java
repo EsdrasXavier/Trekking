@@ -9,8 +9,10 @@ public class GpsMath {
             lat1 = Math.toRadians(lat1);
             lat2 = Math.toRadians(lat2);
             double y0 = Math.sin(dlon) * Math.cos(lat2);
-            double x0 = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dlon);
+            double x0 = (Math.cos(lat1) * Math.sin(lat2)) - (Math.sin(lat1) * Math.cos(lat2) * Math.cos(dlon));
             x0 = Math.atan2(y0, x0);
+
+            if (x0 < 0) x0 += Math.PI * 2;
 
             return Math.toDegrees(x0);
     }

@@ -4,7 +4,6 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -12,6 +11,7 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
@@ -23,12 +23,12 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 import java.util.Set;
 import static android.app.Activity.RESULT_OK;
 
@@ -49,29 +49,26 @@ public class BluetoothActivity extends Fragment {
     private final String TAG = BluetoothActivity.class.getSimpleName();
     private Handler mHandler; // Our main handler that will receive callback notifications
     private BluetoothService mBluetoothService;
-    private BluetoothSocket mBTSocket = null; // bi-directional client-to-client data path
 
     // #defines for identifying shared types between calling functions
     private final static int REQUEST_ENABLE_BT = 1; // used to identify adding bluetooth names
     private final static int MESSAGE_READ = 2; // used in bluetooth handler to identify message update
-    private final static int CONNECTING_STATUS = 3; // used in bluetooth handler to identify message status
 
     private Context context;
-
 
     public BluetoothActivity() { }
 
     @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        getActivity().setTitle("Connect to device");
+        Objects.requireNonNull(getActivity()).setTitle("Connectar dispositovo");
     }
 
     @SuppressLint({"HandlerLeak", "LogNotTimber", "SetTextI18n"})
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.activity_bluetooth, container, false);
 
         mBluetoothStatus = rootView.findViewById(R.id.bluetoothStatus);
@@ -81,22 +78,23 @@ public class BluetoothActivity extends Fragment {
         mDiscoverBtn = rootView.findViewById(R.id.discover);
         mListPairedDevicesBtn = rootView.findViewById(R.id.PairedBtn);
 
-
-        mBTArrayAdapter = new ArrayAdapter<String>(this.context, android.R.layout.simple_list_item_1);
+        mBTArrayAdapter = new ArrayAdapter<>(this.context, android.R.layout.simple_list_item_1);
         mBTAdapter = BluetoothAdapter.getDefaultAdapter(); // get a handle on the bluetooth radio
         try {
             mDevicesListView = rootView.findViewById(R.id.devicesListView);
             mDevicesListView.setAdapter(mBTArrayAdapter); // assign model to view
             mDevicesListView.setOnItemClickListener(mDeviceClickListener);
         } catch (Exception e) {
-            Log.e("BluetoothActivity", "error");
+            Log.e("Bluetooth" +
+                    "Activity", "error");
         }
         // Ask for location permission if not already allowed
         if(ContextCompat.checkSelfPermission(this.context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
-            ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
+            ActivityCompat.requestPermissions(Objects.requireNonNull(getActivity()), new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
 
 
         mHandler = new Handler() {
+            @SuppressLint({"LogNotTimber", "SetTextI18n"})
             public void handleMessage(android.os.Message msg) {
                 Log.i(TAG, "Data: " + msg.arg1);
                 Log.i(TAG, "Data: " + msg.arg2);
@@ -106,12 +104,8 @@ public class BluetoothActivity extends Fragment {
                     Toast.makeText(getActivity(), "Connected", Toast.LENGTH_SHORT).show();
                 } else {
                     if (msg.what == MESSAGE_READ) {
-                        String readMessage = null;
-                        try {
-                            readMessage = new String((byte[]) msg.obj, "UTF-8");
-                        } catch (UnsupportedEncodingException e) {
-                            e.printStackTrace();
-                        }
+                        String readMessage;
+                        readMessage = new String((byte[]) msg.obj, StandardCharsets.UTF_8);
                         mReadBuffer.setText(readMessage);
                     }
                 }
@@ -204,7 +198,7 @@ public class BluetoothActivity extends Fragment {
                 mBTArrayAdapter.clear(); // clear items
                 mBTAdapter.startDiscovery();
                 Toast.makeText(this.context, "Discovery started", Toast.LENGTH_SHORT).show();
-                getActivity().registerReceiver(blReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
+                Objects.requireNonNull(getActivity()).registerReceiver(blReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
             } else {
                 Toast.makeText(this.context, "Bluetooth not on", Toast.LENGTH_SHORT).show();
             }
@@ -239,6 +233,7 @@ public class BluetoothActivity extends Fragment {
     }
 
     private AdapterView.OnItemClickListener mDeviceClickListener = new AdapterView.OnItemClickListener() {
+        @SuppressLint("SetTextI18n")
         public void onItemClick(AdapterView<?> av, View v, int arg2, long arg3) {
 
             if(!mBTAdapter.isEnabled()) {
@@ -254,14 +249,18 @@ public class BluetoothActivity extends Fragment {
 
             // Spawn a new thread to avoid blocking the GUI one
             new Thread() {
+                @SuppressLint("LogNotTimber")
                 public void run() {
                     BluetoothDevice device = mBTAdapter.getRemoteDevice(address);
+                    Log.i(TAG, "Device info: " + device.getName() + " " + device.getAddress());
                     mBluetoothService.connect(device, true);
 
                     Log.i(TAG, "Current State: " + mBluetoothService.getState());
-                    getActivity().getIntent().putExtra("conn", mBluetoothService);
+                    Objects.requireNonNull(getActivity()).getIntent().putExtra("conn", mBluetoothService);
                 }
             }.start();
         }
     };
+
+
 }
