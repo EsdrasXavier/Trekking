@@ -18,5 +18,10 @@
             android:id="@+id/playground"
             android:icon="@drawable/ic_menu_playground"
             android:title="Playground" />
+
+        <item
+            android:id="@+id/config"
+            android:icon="@drawable/ic_cog"
+            android:title="Configuração" />
     </group>
 </menu>

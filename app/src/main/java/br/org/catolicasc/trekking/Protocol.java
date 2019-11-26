@@ -2,6 +2,8 @@ package br.org.catolicasc.trekking;
 
 public class Protocol {
     public static byte MOTOR_CONTROL = 1;
+    public static byte START_STOP = 2;
+    public static byte SEND_ANGLE = 10;
 
 
     public static byte[] intToByte(int value) {

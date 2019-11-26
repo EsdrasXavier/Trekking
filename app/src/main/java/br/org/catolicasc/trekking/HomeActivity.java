@@ -70,6 +70,7 @@ public class HomeActivity extends Fragment implements CompassListener.CompassHan
     private Context context;
     private Handler mHandler = new Handler(Looper.getMainLooper());
     private int power = 0;
+    private double currentAngle = 0;
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
@@ -227,17 +228,25 @@ public class HomeActivity extends Fragment implements CompassListener.CompassHan
     @Override
     public void onAngleChanged(Double angle) {
         mTextViewAngle.setText(angle.toString() + "°");
+        currentAngle = angle;
+
+        byte[] data = Protocol.intToByte(angle.intValue());
+        byte[] sendData = new byte[] { Protocol.SEND_ANGLE, data[0], data[1] };
+
+        if (mBluetoothService != null) {
+            mBluetoothService.write(data);
+        }
 
         if (mPIDController != null) {
             Double powerFromPid = mPIDController.performPid(angle);
             power = powerFromPid.intValue();
-            mTextViewDirection.setText("± " + String.format("%.2f", powerFromPid));
+            // mTextViewDirection.setText("± " + String.format("%.2f", powerFromPid));
 
             if (mPIDController.onTarget()) {
 //                mPIDController.reset();
-                mTextViewDirection.setTextColor(Color.BLACK);
+               // mTextViewDirection.setTextColor(Color.BLACK);
             } else {
-                mTextViewDirection.setTextColor(Color.RED);
+                //mTextViewDirection.setTextColor(Color.RED);
             }
         }
     }
@@ -258,8 +267,6 @@ public class HomeActivity extends Fragment implements CompassListener.CompassHan
 
     public List<Point> fetchPoints() {
         PointDal dal = new PointDal(mContext);
-//        Point p = new Point(-26.4673054, -49.1158967);
-//        dal.createGeographicPoint(p);
         return dal.findAllGeographicPoints();
     }
 
@@ -348,60 +355,58 @@ public class HomeActivity extends Fragment implements CompassListener.CompassHan
                 return null;
             }
 
-            byte[] left;
-            byte[] right;
+            byte[] left = Protocol.intToByte(0);
+            byte[] right = Protocol.intToByte(0);;
             byte[] data;
             int index = 0;
             boolean isObstacle;
-            int i = 0;
-            Double distance;
-            Point point = points.get(index++);
+            boolean isOnTarget = false;
+            Point point = points.get(index);
 
-            double angle = GpsMath.courseTo(currentPoint.getLat(), currentPoint.getLon(), point.getLat(), point.getLon());
-            mPIDController.setSetPoint(angle);
-            while (point != null) {
+            while (true) {
                 if (isCancelled()) break;
-                i++;
-//                if (i > 4000) {
-//                    Log.i(TAG, "Reseetando contador");
-//                    i = 0;
-//                    angle = GpsMath.courseTo;
-//                    (point.getLat(), point.getLon(), currentPoint.getLat(), currentPoint.getLon());
-//                    mPIDController.setSetPoint(angle);
-//                }
+                double angle = GpsMath.courseTo(currentPoint.getLat(), currentPoint.getLon(), point.getLat(), point.getLon());
+                double distance = GpsMath.distanceBetween(currentPoint.getLat(), currentPoint.getLon(), point.getLat(), point.getLon());
+                double rightAngle = GpsMath.getBestTurnAngle(currentAngle, angle);
 
-                isObstacle = point.getType().getId() == 2;
-                Log.i(TAG, "Point: " + point.getId() + " Lat: " + point.getLat() + " - Long: " + point.getLon());
-
-                distance = GpsMath.distanceBetween(currentPoint.getLat(), currentPoint.getLon(), point.getLat(), point.getLon());
-
-                if (distance < 1) {
-                    try {
-                        point = points.get(index++);
-                        mPIDController.setSetPoint(angle);
+                if (!isOnTarget) {
+                    if (currentAngle > (angle + 5) || currentAngle < (angle - 5)) {
+                        if (currentAngle < angle) {
+                            left = Protocol.intToByte(-80);
+                            right = Protocol.intToByte(80);
+                        } else {
+                            left = Protocol.intToByte(80);
+                            right = Protocol.intToByte(-80);
+                        }
+                    } else {
+                        isOnTarget = true;
+                    }
+                } else {
+                    // In case the robot is too off the route kkk
+                    // qm joga lol ehh gyayyy
+                    if (rightAngle < -15 || rightAngle > 15) {
+                        isOnTarget = false;
                         continue;
-                    } catch (IndexOutOfBoundsException e) {
-                        Log.e(TAG, "Index out of range.");
-                        point = null;
+                    } else if (rightAngle < 0) {
+                        // Goes right
+                    } else if (rightAngle > 0) {
+                        // Goes left
+                    } else {
+                        // Move straight
                     }
                 }
 
-                Double finalDistance = distance;
-                mHandler.post(() -> mTextViewDistance.setText(finalDistance.toString()));
-                Log.i(TAG, "Angle: " + angle + " -=- Point: " + point.getId() + " Lat: " + point.getLat() + " - Long: " + point.getLon() + " === Distance from here to the point: " + distance + " -=- Power: " + power + " -=-=- Is set point: " + mPIDController.onTarget());
-
-                if (mPIDController.onTarget()) {
-                    left = right = Protocol.intToByte(300);
-                    mPIDController.reset();
-                } else {
-                    left = Protocol.intToByte(power);
-                    right = Protocol.intToByte(-power);
-                }
 
                 if (mBluetoothService != null) {
                     data = new byte[] {Protocol.MOTOR_CONTROL, left[0], left[1], right[0], right[1]};
                     mBluetoothService.write(data);
                 }
+
+                mHandler.post(() -> {
+                    // Just update the screen for debug pourposes
+                    mTextViewDistance.setText(String.valueOf(distance));
+                    mTextViewDirection.setText(String.valueOf(rightAngle));
+                });
 
                 try {
                     Thread.sleep(100);
@@ -410,16 +415,21 @@ public class HomeActivity extends Fragment implements CompassListener.CompassHan
                 }
             }
 
-            data = new byte[] {Protocol.MOTOR_CONTROL, 0, 0, 0, 0};
-            mBluetoothService.write(data);
+            if (mBluetoothService != null) {
+                data = new byte[]{Protocol.MOTOR_CONTROL, 0, 0, 0, 0};
+                mBluetoothService.write(data);
+            }
             return null;
         }
 
         protected void onCancelled() {
             disableEnableControls(true);
             mHandler.post(() -> {
-                byte[] data = new byte[] {Protocol.MOTOR_CONTROL, 0, 0, 0, 0};
-                mBluetoothService.write(data);
+                if (mBluetoothService != null) {
+                    byte[] data = new byte[]{Protocol.MOTOR_CONTROL, 0, 0, 0, 0};
+                    mBluetoothService.write(data);
+                }
+
                 Toast.makeText(this.contextRef.get(), "Route done!", Toast.LENGTH_LONG).show();
                 mButtonStart.setText("Start");
                 mButtonStart.setBackgroundColor(Color.parseColor("#43A047"));

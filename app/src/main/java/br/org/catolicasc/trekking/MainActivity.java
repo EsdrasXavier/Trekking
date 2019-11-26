@@ -79,6 +79,10 @@ public class MainActivity extends AppCompatActivity implements
             case R.id.control:
                 fragment = new HomeActivity();
                 break ;
+
+            case R.id.config:
+                fragment = new ConfigActivity();
+                break;
         }
 
         if (fragment != null) {

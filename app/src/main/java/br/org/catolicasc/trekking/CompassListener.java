@@ -20,7 +20,7 @@ public class CompassListener implements SensorEventListener {
         compass = sensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
 
         if (compass != null) {
-            sensorManager.registerListener((SensorEventListener) this, compass, SensorManager.SENSOR_DELAY_NORMAL);
+            sensorManager.registerListener((SensorEventListener) this, compass, SensorManager.SENSOR_DELAY_UI);
             compassHandler = _compassHandler;
         }
     }

@@ -37,5 +37,19 @@ public class GpsMath {
         return delta;
     }
 
+    /**
+     * @param currentAngle The current robot front angle
+     * @param targetAngle Where the robot must be turned to get in the right point
+     *
+     * @return Will return the angle betweeen -180 and 180, if the value is
+     * smaller than 0 the robot must turn right, if the value is bigger than 0
+     * the robot must turn left, if the value is 0, the robot is on right path.
+     * */
+    public static int getBestTurnAngle(double currentAngle, double targetAngle) {
+        int diff = (int) (targetAngle - currentAngle + 180) % 360 - 180;
+
+        return (diff < -180 ? diff + 360 : diff);
+    }
+
     public static Double sq(double x) { return x * x; }
 }
